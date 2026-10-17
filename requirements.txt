@@ -1,0 +1,3 @@
+# Dependensi follow-up pembayaran (Python 3.10+). Pasang: instalasi.bat  atau  pip install -r requirements.txt
+# Diuji dengan DrissionPage 4.1.1.2 dan Google Chrome 155.
+DrissionPage>=4.1.1,<4.2

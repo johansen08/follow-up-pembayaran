@@ -1,0 +1,29 @@
+# === Mode distribusi PENGGUNA ===
+# Repo ini hanya memuat yang dibutuhkan untuk MEMASANG dan MEMAKAI aplikasi.
+# Bahan pengembangan tetap ada di komputer pengembang tetapi tidak ikut di-push.
+
+# --- Bahan pengembangan (tidak ikut) ---
+tests/
+prototype/
+sniff/
+src/login_shopee.py
+docs/arsitektur.md
+docs/selector_tiktok.md
+docs/pengujian.md
+docs/konvensi.md
+
+# --- Data runtime & rahasia (JANGAN PERNAH di-push) ---
+data/
+cookies.json
+*.cadangan*
+*.lock
+*.tmp
+
+# --- Python ---
+__pycache__/
+*.pyc
+
+# --- Editor / tool ---
+.vscode/
+.idea/
+.claude/
