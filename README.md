@@ -7,10 +7,18 @@ tidak menerima pesan yang sama dua kali.
 
 ## Mulai cepat
 
-1. Klik dua kali `instalasi.bat` (sekali saja).
-2. Klik dua kali `follow_up_pembayaran.bat`. Browser terbuka ke <http://127.0.0.1:8765>.
-3. Toko yang belum login: klik **Login** pada kartu toko, login di jendela Chrome yang terbuka.
-4. Centang toko, pilih inisial, periksa template, lalu klik **Kirim sekarang**.
+1. Unduh dan pasang **Git** (<https://git-scm.com/download/win>), **Python 3.10+**
+   (<https://www.python.org/downloads/windows/>, centang "Add python.exe to PATH"), dan
+   **Google Chrome**. Rinciannya di [docs/instalasi.md](docs/instalasi.md).
+2. Clone repo, lalu masuk ke foldernya:
+   ```bash
+   git clone https://github.com/johansen08/follow-up-pembayaran.git
+   cd follow-up-pembayaran
+   ```
+3. Klik dua kali `instalasi.bat` (sekali saja).
+4. Klik dua kali `follow_up_pembayaran.bat`. Browser terbuka ke <http://127.0.0.1:8765>.
+5. Klik **＋ Tambah toko**, lalu **Login** pada kartu toko dan login di jendela Chrome yang terbuka.
+6. Centang toko, pilih inisial, periksa template, lalu klik **Kirim sekarang**.
 
 > **Perhatian:** tombol Kirim mengirim pesan **sungguhan** ke pembeli. Uji dulu satu pesanan
 > lewat baris perintah, lihat [docs/cli.md](docs/cli.md).
@@ -39,4 +47,4 @@ docs/         dokumentasi
 
 ## Persyaratan
 
-Windows, Python 3.10+, Google Chrome, dan koneksi internet.
+Windows, Git, Python 3.10+, Google Chrome, dan koneksi internet.
