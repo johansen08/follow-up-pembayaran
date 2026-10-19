@@ -27,6 +27,9 @@ class LogKirim:
     def __len__(self) -> int:
         return len(self._data)
 
+    def status(self, order_id: str) -> str:
+        return self._data.get(order_id, {}).get("status", "")
+
     def catat(self, order_id: str, status: str, pembeli: str) -> None:
         self._data[order_id] = {
             "status": status,

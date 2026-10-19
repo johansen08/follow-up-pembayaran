@@ -248,6 +248,13 @@ def kirim_lewat_ui(browser, pesanan: dict, pesan: str, sebelum_ketik: Callable[[
             if identitas_cocok(state, pesanan) is None and pesan_kita_ada(state, pesan) \
                     and not (box.text or box.value or "").strip():
                 return TERKIRIM
+        # Cek akhir lebih lama: pesan bisa muncul terlambat atau kotak input belum kosong. Sebelum mengetik
+        # pesan kita terbukti belum ada, jadi gelembung kita di percakapan terverifikasi ini berarti terkirim.
+        for _ in range(8):
+            time.sleep(1)
+            state = baca_state(tab, oid)
+            if identitas_cocok(state, pesanan) is None and pesan_kita_ada(state, pesan):
+                return TERKIRIM
         return TIDAK_PASTI
     finally:
         tab.close()

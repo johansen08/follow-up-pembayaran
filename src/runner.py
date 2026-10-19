@@ -78,6 +78,8 @@ def jalankan_toko(toko: Toko, kirim: bool, limit: int, pesan: str,
             seller_id, belum = ambil_pesanan_belum_bayar(browser.latest_tab)
             periksa_identitas(toko, seller_id)
 
+            if kirim:
+                _rekonsiliasi(browser, belum, log, pesan, stop)
             target = [o for o in belum if o["order_id"] not in log]
             print(f"[fu] belum bayar: {len(belum)} | sudah di-FU (log): {len(belum) - len(target)} | target: {len(target)}")
             if limit:
@@ -120,6 +122,24 @@ def _dry_run(browser, target: list[dict], pesan: str) -> None:
         if n < len(target):
             time.sleep(1)
     print(f"[fu] hasil cek: {ringkas}")
+
+
+def _rekonsiliasi(browser, belum: list[dict], log: LogKirim, pesan: str,
+                  stop: threading.Event | None = None) -> int:
+    """Pesanan berstatus 'mencoba'/'tidak_pasti' (verifikasi sempat gagal) dicek ulang: bila pesan kita
+    ternyata sudah ada di chat, status diubah jadi 'terkirim'. Hanya membaca chat, tidak pernah mengetik."""
+    diperbaiki = 0
+    for o in belum:
+        if stop and stop.is_set():
+            break
+        oid = o["order_id"]
+        if oid not in log or log.status(oid) not in ("mencoba", "tidak_pasti") or not o["chat_link"]:
+            continue
+        if chat.periksa_lewat_ui(browser, o, pesan) == chat.SUDAH_ADA:
+            log.ubah_status(oid, "terkirim")
+            diperbaiki += 1
+            print(f"[fu] {oid}: pesan ternyata sudah terkirim, status diperbarui")
+    return diperbaiki
 
 
 def _kirim_semua(browser, target: list[dict], log: LogKirim, pesan: str,
