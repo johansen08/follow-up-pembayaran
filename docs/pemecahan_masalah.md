@@ -16,5 +16,16 @@
 | `Python 3 tidak ditemukan di PATH` | Python belum terpasang atau tidak di `PATH` | Pasang Python 3.10+ dan centang "Add to PATH" |
 | `PermissionError` pada `send_log.json` | Berkas sedang dibaca saat diganti (Windows) | Sudah ditangani dengan percobaan ulang otomatis |
 
+## Pop-up peringatan + suara
+
+Saat proses terhenti (captcha, sesi habis, pengiriman tidak terverifikasi, error lain), muncul pop-up
+di pojok kanan bawah layar disertai bunyi alarm. Pop-up selalu di atas jendela Chrome dan **menutup
+sendiri setelah 10 detik** (atau klik **Tutup**). Pesan yang sama tetap tampil di kartu toko.
+
+- **Captcha**: dipantau tiap 5 detik di semua tab Chrome bot. Pop-up muncul sekali per kemunculan.
+  Geser captcha di jendela Chrome; bila proses sudah berhenti, jalankan ulang.
+- Berhenti karena tombol **Hentikan** tidak memunculkan pop-up.
+- Kode: `src/notif.py` (pop-up + suara, tkinter + winsound), `src/captcha.py` (pemantau).
+
 Folder `data/stores/<toko>/chrome-profile` bisa dihapus untuk mereset profil Chrome toko; lakukan
 Login ulang setelahnya.

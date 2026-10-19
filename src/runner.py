@@ -13,6 +13,7 @@ from DrissionPage import Chromium
 
 from . import chat
 from .browser import opsi_browser
+from .captcha import Pemantau
 from .config import BASE_URL, JEDA_MAX, JEDA_MIN
 from .orders import ambil_pesanan_belum_bayar
 from .send_log import LogKirim
@@ -72,6 +73,7 @@ def jalankan_toko(toko: Toko, kirim: bool, limit: int, pesan: str,
     with _kunci(toko):
         log = LogKirim(toko)
         browser = _buka_browser(toko)
+        pemantau = Pemantau(browser, toko.nama, hook).__enter__()  # beri tahu bila captcha menahan proses
         try:
             seller_id, belum = ambil_pesanan_belum_bayar(browser.latest_tab)
             periksa_identitas(toko, seller_id)
@@ -92,6 +94,7 @@ def jalankan_toko(toko: Toko, kirim: bool, limit: int, pesan: str,
             _, berhenti = _kirim_semua(browser, target, log, pesan, hook, stop)
             _emit(hook, t="selesai", berhenti=berhenti)
         finally:
+            pemantau.__exit__(None, None, None)
             browser.quit()
 
 

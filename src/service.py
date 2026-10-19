@@ -6,7 +6,7 @@ import threading
 import time
 from typing import Callable
 
-from . import runner
+from . import notif, runner
 from .stores import Toko
 
 
@@ -23,8 +23,10 @@ def pesan_galat(e: BaseException) -> str:
 
 
 class RunManager:
-    def __init__(self, jalankan_toko: Callable = runner.jalankan_toko):
+    def __init__(self, jalankan_toko: Callable = runner.jalankan_toko,
+                 beri_tahu: Callable[[str, str], None] = notif.peringatan):
         self._jalankan_toko = jalankan_toko  # bisa diganti saat uji
+        self._beri_tahu = beri_tahu          # pop-up + suara saat proses terhenti
         self._lock = threading.Lock()
         self._stop = threading.Event()
         self._state: dict | None = None
@@ -90,6 +92,7 @@ class RunManager:
                                     hook=lambda ev, s=toko.slug: self._hook(s, ev), stop=stop)
             except BaseException as e:  # satu toko gagal tidak menghentikan toko lain
                 self._ubah(toko.slug, status="berhenti", msg=pesan_galat(e))
+                self._beri_tahu(f"Proses terhenti: {toko.nama}", pesan_galat(e))
             with self._lock:
                 p = self._state["per"][toko.slug]
                 if p["status"] == "jalan":
@@ -111,5 +114,9 @@ class RunManager:
                 self._state["cur"] = None
                 if ev["status"] == "perlu_dicek":
                     p["warn"] = True
+            elif t == "captcha":
+                p["msg"] = "Captcha terdeteksi: selesaikan di jendela Chrome" if ev["ada"] else ""
             elif t == "selesai" and ev.get("berhenti"):
                 p["status"], p["msg"] = "berhenti", ev["berhenti"]
+                if ev["berhenti"] != "Dihentikan pengguna":
+                    self._beri_tahu(f"Proses terhenti: {slug}", ev["berhenti"])
