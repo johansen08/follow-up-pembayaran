@@ -44,10 +44,17 @@ def ambil_pesanan_belum_bayar(tab) -> tuple[str, list[dict]]:
         data = tab.run_js(_FETCH_JS, url, json.dumps(body))
         if data.get("code") != 0:
             raise RuntimeError(f"order/list gagal: {data.get('message')}")
-        page = data["data"].get("main_orders", [])
+        isi = data.get("data") or {}
+        page = isi.get("main_orders") or []
         orders += page
         offset += len(page)
-        if not page or offset >= data["data"].get("total_count", 0):
+        total = isi.get("total_count")
+        # Halaman > 1 selalu dicek: lanjut selama halaman terisi penuh / belum mencapai total / server bilang masih ada.
+        if not page:
+            break
+        if total is not None and offset >= total and not isi.get("has_more"):
+            break
+        if total is None and len(page) < PAGE_SIZE and not isi.get("has_more"):
             break
 
     hasil = []

@@ -115,7 +115,10 @@ def _cari_input(tab, tunggu: float = 15.0):
     batas = time.monotonic() + tunggu
     while True:
         for sel in INPUT_SELECTORS:
-            el = tab.ele(sel, timeout=1)
+            try:
+                el = tab.ele(sel, timeout=1)
+            except KeyError:  # bug DrissionPage: DOM.performSearch gagal saat halaman berpindah -> 'searchId'
+                continue
             if el:
                 return el
         if time.monotonic() >= batas:
@@ -205,21 +208,57 @@ def _kotak_siap(tab, tunggu: float = 10.0):
         time.sleep(0.5)
 
 
-def periksa_lewat_ui(browser, pesanan: dict, pesan: str) -> str:
+def _ringkas_error(e: Exception) -> str:
+    return f"{type(e).__name__}: {' '.join(str(e).split())[:80]}"
+
+
+def periksa_lewat_ui(browser, pesanan: dict, pesan: str, percobaan: int = 2) -> str:
     """DRY-RUN: buka chat & cek riwayat saja. Tidak mengetik, tidak menekan Enter, tidak menulis log.
     `pesanan` = dict dengan order_id, pembeli, chat_link.
-    Return PERLU_KIRIM / SUDAH_ADA / BELUM_KETIK (input tidak ditemukan / percakapan tak terverifikasi)."""
-    tab = browser.new_tab(BASE_URL + pesanan["chat_link"])
-    try:
-        box, ada = _periksa(tab, pesanan, pesan)
-        if not box:
-            return BELUM_KETIK
-        return SUDAH_ADA if ada else PERLU_KIRIM
-    finally:
-        tab.close()
+    Return PERLU_KIRIM / SUDAH_ADA / BELUM_KETIK (input tidak ditemukan / percakapan tak terverifikasi).
+    Error teknis browser (mis. halaman berpindah) diulang `percobaan` kali lalu dianggap BELUM_KETIK."""
+    for ke in range(1, percobaan + 1):
+        tab = None
+        try:
+            tab = browser.new_tab(BASE_URL + pesanan["chat_link"])
+            box, ada = _periksa(tab, pesanan, pesan)
+            if not box:
+                return BELUM_KETIK
+            return SUDAH_ADA if ada else PERLU_KIRIM
+        except Exception as e:
+            print(f"   ! error browser saat cek chat ({_ringkas_error(e)}), percobaan {ke}/{percobaan}")
+        finally:
+            if tab:
+                try:
+                    tab.close()
+                except Exception:
+                    pass
+    return BELUM_KETIK
 
 
-def kirim_lewat_ui(browser, pesanan: dict, pesan: str, sebelum_ketik: Callable[[], None]) -> str:
+def kirim_lewat_ui(browser, pesanan: dict, pesan: str, sebelum_ketik: Callable[[], None],
+                   percobaan: int = 2) -> str:
+    """Buka chat pesanan, ketik pesan, Enter, verifikasi. Error teknis browser sebelum mengetik diulang
+    `percobaan` kali (aman, belum ada yang dikirim) lalu BELUM_KETIK; setelah mengetik -> TIDAK_PASTI
+    (tidak pernah dikirim ulang otomatis)."""
+    dicatat = []
+
+    def tandai():
+        dicatat.append(1)
+        sebelum_ketik()
+
+    for ke in range(1, percobaan + 1):
+        try:
+            return _kirim_sekali(browser, pesanan, pesan, tandai)
+        except Exception as e:
+            print(f"   ! error browser saat kirim ({_ringkas_error(e)})")
+            if dicatat:
+                return TIDAK_PASTI
+            print(f"   percobaan {ke}/{percobaan}")
+    return BELUM_KETIK
+
+
+def _kirim_sekali(browser, pesanan: dict, pesan: str, sebelum_ketik: Callable[[], None]) -> str:
     """Buka chat pesanan, ketik pesan, Enter, verifikasi. `sebelum_ketik` dipanggil tepat sebelum
     mengetik (untuk mencatat 'mencoba' ke log). `pesanan` = dict dengan order_id, pembeli, chat_link."""
     oid = pesanan["order_id"]
@@ -257,4 +296,7 @@ def kirim_lewat_ui(browser, pesanan: dict, pesan: str, sebelum_ketik: Callable[[
                 return TERKIRIM
         return TIDAK_PASTI
     finally:
-        tab.close()
+        try:
+            tab.close()
+        except Exception:
+            pass
