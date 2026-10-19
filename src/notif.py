@@ -21,18 +21,18 @@ _kunci = threading.Lock()  # satu pop-up pada satu waktu; yang lain antre
 
 
 def bunyi(selesai: threading.Event | None = None) -> None:
-    """Bunyikan alarm (dua nada) berulang tiap ~2 detik sampai `selesai` di-set / maksimal DETIK_TUTUP."""
+    """Bunyikan alarm dua nada bergantian nyaris tanpa jeda selama DETIK_TUTUP detik penuh
+    (berhenti lebih awal bila `selesai` di-set, mis. pop-up ditutup manual)."""
     if winsound is None:
         return
     batas = time.monotonic() + DETIK_TUTUP
     try:
-        while time.monotonic() < batas and not (selesai and selesai.is_set()):
-            winsound.Beep(1000, 300)
-            winsound.Beep(1300, 400)
-            if selesai:
-                selesai.wait(1.5)
-            else:
-                break
+        while True:
+            for nada in (1000, 1300):
+                if time.monotonic() >= batas or (selesai and selesai.is_set()):
+                    return
+                winsound.Beep(nada, 350)
+            time.sleep(0.15)
     except Exception:
         pass
 
