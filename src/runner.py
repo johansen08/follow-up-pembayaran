@@ -44,6 +44,8 @@ def _buka_browser(toko: Toko) -> Chromium:
     return browser
 
 
+MAKS_GAGAL_BERUNTUN = 3
+
 Hook = Callable[[dict], None]
 
 
@@ -147,6 +149,7 @@ def _kirim_semua(browser, target: list[dict], log: LogKirim, pesan: str,
     """Return (jumlah terkirim, alasan berhenti atau None)."""
     terkirim = 0
     berhenti = None
+    gagal_beruntun = 0
     for n, o in enumerate(target, 1):
         oid = o["order_id"]
         if stop and stop.is_set():
@@ -170,6 +173,7 @@ def _kirim_semua(browser, target: list[dict], log: LogKirim, pesan: str,
         if hasil == chat.TERKIRIM:
             log.ubah_status(oid, "terkirim")
             terkirim += 1
+            gagal_beruntun = 0
             _emit(hook, t="hasil", no=oid, status="terkirim")
         elif hasil == chat.SUDAH_ADA:
             log.catat(oid, "sudah_ada_di_chat", o["pembeli"])
@@ -184,8 +188,11 @@ def _kirim_semua(browser, target: list[dict], log: LogKirim, pesan: str,
             break
         else:
             _emit(hook, t="hasil", no=oid, status="dilewati")
-            if n == 1:  # BELUM_KETIK pada pesan pertama: kemungkinan selector salah
-                print("[fu] pesan pertama gagal - berhenti agar selector dicek dulu.")
+            gagal_beruntun += 1
+            # Gagal sesekali (halaman lambat/berpindah) wajar dan aman dilewati; gagal beruntun dari awal
+            # berarti kemungkinan selector salah atau sesi bermasalah.
+            if gagal_beruntun >= MAKS_GAGAL_BERUNTUN:
+                print(f"[fu] {gagal_beruntun} pesanan gagal beruntun - berhenti agar selector/sesi dicek dulu.")
                 berhenti = "Kotak chat tidak ditemukan/tidak bisa diklik, coba lagi atau cek selector"
                 break
         _jeda(stop)

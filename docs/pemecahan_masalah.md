@@ -29,3 +29,8 @@ sendiri setelah 10 detik** (atau klik **Tutup**). Pesan yang sama tetap tampil d
 
 Folder `data/stores/<toko>/chrome-profile` bisa dihapus untuk mereset profil Chrome toko; lakukan
 Login ulang setelahnya.
+
+## Log berkas
+
+Seluruh output konsol (termasuk traceback error) disalin ke `data/log/<tanggal>.log`, jadi error tetap
+bisa dibaca setelah jendela `.bat` ditutup.

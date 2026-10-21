@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import json
 import re
+import sys
+import time
 import webbrowser
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse
@@ -214,8 +216,40 @@ class Handler(BaseHTTPRequestHandler):
     def do_DELETE(self): self._tangani("DELETE")
 
 
+class _Tee:
+    """Salin output konsol ke berkas log harian supaya error tetap terbaca setelah jendela ditutup."""
+
+    def __init__(self, asli, berkas):
+        self._asli, self._berkas = asli, berkas
+
+    def write(self, teks):
+        for tujuan in (self._asli, self._berkas):
+            try:
+                if tujuan:
+                    tujuan.write(teks)
+                    tujuan.flush()
+            except Exception:
+                pass
+        return len(teks)
+
+    def flush(self):
+        pass
+
+    def __getattr__(self, nama):
+        return getattr(self._asli, nama)
+
+
+def _aktifkan_log_berkas() -> None:
+    folder = ROOT / "data" / "log"
+    folder.mkdir(parents=True, exist_ok=True)
+    berkas = open(folder / f"{time.strftime('%Y-%m-%d')}.log", "a", encoding="utf-8", buffering=1)
+    berkas.write(f"\n--- mulai {time.strftime('%H:%M:%S')} ---\n")
+    sys.stdout, sys.stderr = _Tee(sys.stdout, berkas), _Tee(sys.stderr, berkas)
+
+
 def main(buka_browser: bool = True) -> None:
     siapkan_folder()
+    _aktifkan_log_berkas()
     srv = ThreadingHTTPServer((WEB_HOST, WEB_PORT), Handler)
     url = f"http://{WEB_HOST}:{WEB_PORT}"
     print(f"FU Pembayaran berjalan di {url}  (Ctrl+C untuk berhenti)")

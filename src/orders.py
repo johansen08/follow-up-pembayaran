@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import time
 from urllib.parse import parse_qs, urlparse
 
 from .config import ORDER_URL, PAGE_SIZE, STATUS_BELUM_BAYAR
@@ -21,7 +22,21 @@ _FETCH_JS = (
 )
 
 
-def ambil_pesanan_belum_bayar(tab) -> tuple[str, list[dict]]:
+def ambil_pesanan_belum_bayar(tab, percobaan: int = 3) -> tuple[str, list[dict]]:
+    """Ambil daftar pesanan; gangguan sesaat (halaman berpindah, 'searchId', request tak tertangkap)
+    diulang `percobaan` kali. Aman diulang: hanya membaca."""
+    for ke in range(1, percobaan + 1):
+        try:
+            return _ambil(tab)
+        except Exception as e:
+            if ke == percobaan:
+                raise
+            print(f"[fu] gagal ambil daftar pesanan ({type(e).__name__}: {' '.join(str(e).split())[:80]}), "
+                  f"percobaan {ke}/{percobaan}")
+            time.sleep(3)
+
+
+def _ambil(tab) -> tuple[str, list[dict]]:
     """Return (seller_id, daftar pesanan belum bayar). Tangkap request order/list pertama dari halaman
     (agar parameter URL ikut), lalu paginasi dengan fetch di konteks halaman."""
     tab.listen.start("api/fulfillment/order/list", method="POST")
