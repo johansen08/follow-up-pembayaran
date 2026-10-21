@@ -11,6 +11,8 @@ import gc
 import threading
 import time
 
+from . import logs
+
 try:
     import winsound  # hanya Windows
 except ImportError:  # pragma: no cover
@@ -88,7 +90,8 @@ def peringatan(judul: str, pesan: str, detik: int = DETIK_TUTUP) -> None:
     def kerja() -> None:
         try:
             _tampilkan(judul, pesan, detik)
-        except Exception:  # tkinter tak terpasang / tak ada layar: minimal tetap berbunyi
+        except Exception as e:  # tkinter tak terpasang / tak ada layar: minimal tetap berbunyi
+            logs.galat("pop-up peringatan", e)
             bunyi()
 
     threading.Thread(target=kerja, name="popup-peringatan", daemon=True).start()

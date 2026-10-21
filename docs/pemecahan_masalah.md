@@ -32,5 +32,13 @@ Login ulang setelahnya.
 
 ## Log berkas
 
-Seluruh output konsol (termasuk traceback error) disalin ke `data/log/<tanggal>.log`, jadi error tetap
-bisa dibaca setelah jendela `.bat` ditutup.
+Semua kejadian dan error tersimpan otomatis di `data/log/`, tidak perlu menyalin dari konsol:
+
+| Berkas | Isi |
+|---|---|
+| `error.log` | Hanya peringatan dan error, lengkap dengan traceback. **Buka ini dulu.** |
+| `fu-<tanggal>.log` | Seluruh output program per hari, tiap baris berstempel waktu. Berkas lebih dari 14 hari dihapus otomatis |
+
+Yang tercatat: toko berhenti (beserta alasannya), error saat cek/kirim chat per percobaan, gagal ambil
+daftar pesanan, login gagal, error server web, error pemantau captcha/pop-up, dan error tak
+tertangani di thread mana pun. Kode: `src/logs.py`.

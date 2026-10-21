@@ -17,7 +17,7 @@ from typing import Callable
 
 from DrissionPage import Chromium
 
-from . import runner
+from . import logs, runner
 from .browser import opsi_browser
 from .config import BASE_URL, LOCAL_PORT
 from .orders import ambil_pesanan_belum_bayar
@@ -142,6 +142,7 @@ class LoginManager:
             else:
                 self._akhir("dibatalkan", "Login dibatalkan.")
         except BaseException as e:
+            logs.galat(f"login {toko.nama} gagal", e)
             self._akhir("gagal", " ".join(str(e).split())[:200] or e.__class__.__name__)
 
     def _akhir(self, status: str, msg: str) -> None:

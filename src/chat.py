@@ -20,6 +20,7 @@ import re
 import time
 from typing import Callable
 
+from . import logs
 from .config import BASE_URL, INPUT_SELECTORS
 
 # Hasil kirim_lewat_ui
@@ -227,6 +228,7 @@ def periksa_lewat_ui(browser, pesanan: dict, pesan: str, percobaan: int = 2) -> 
             return SUDAH_ADA if ada else PERLU_KIRIM
         except Exception as e:
             print(f"   ! error browser saat cek chat ({_ringkas_error(e)}), percobaan {ke}/{percobaan}")
+            logs.galat(f"cek chat {pesanan['order_id']} percobaan {ke}/{percobaan}", e)
         finally:
             if tab:
                 try:
@@ -252,6 +254,7 @@ def kirim_lewat_ui(browser, pesanan: dict, pesan: str, sebelum_ketik: Callable[[
             return _kirim_sekali(browser, pesanan, pesan, tandai)
         except Exception as e:
             print(f"   ! error browser saat kirim ({_ringkas_error(e)})")
+            logs.galat(f"kirim {pesanan['order_id']} percobaan {ke}/{percobaan} (sudah mengetik: {bool(dicatat)})", e)
             if dicatat:
                 return TIDAK_PASTI
             print(f"   percobaan {ke}/{percobaan}")

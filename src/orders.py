@@ -6,6 +6,7 @@ import json
 import time
 from urllib.parse import parse_qs, urlparse
 
+from . import logs
 from .config import ORDER_URL, PAGE_SIZE, STATUS_BELUM_BAYAR
 
 # Dipakai bila DrissionPage tidak memberi body request asli: body tab "pending" dari hasil sniff.
@@ -33,6 +34,7 @@ def ambil_pesanan_belum_bayar(tab, percobaan: int = 3) -> tuple[str, list[dict]]
                 raise
             print(f"[fu] gagal ambil daftar pesanan ({type(e).__name__}: {' '.join(str(e).split())[:80]}), "
                   f"percobaan {ke}/{percobaan}")
+            logs.galat(f"ambil daftar pesanan percobaan {ke}/{percobaan}", e)
             time.sleep(3)
 
 

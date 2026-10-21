@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 
+from . import logs
 from .config import PESAN_DEFAULT
 from .runner import jalankan_toko
 from .stores import cari_toko, semua_toko, siapkan_folder
@@ -19,6 +20,7 @@ def main() -> None:
     args = ap.parse_args()
 
     siapkan_folder()
+    logs.aktifkan()
     daftar = [cari_toko(n) for n in args.toko] if args.toko else [t for t in semua_toko() if t.siap()]
     if not daftar:
         raise SystemExit("Tidak ada toko dengan cookies.json di data/stores/<nama_toko>/")
@@ -27,4 +29,4 @@ def main() -> None:
         try:
             jalankan_toko(toko, args.kirim, args.limit, args.pesan)
         except Exception as e:  # satu toko gagal tidak menghentikan toko lain
-            print(f"[ERROR] {toko.nama}: {e}")
+            logs.galat(f"toko {toko.nama}", e)

@@ -4,10 +4,9 @@ from __future__ import annotations
 
 import threading
 import time
-import traceback
 from typing import Callable
 
-from . import notif, runner
+from . import logs, notif, runner
 from .stores import Toko
 
 
@@ -92,7 +91,7 @@ class RunManager:
                 self._jalankan_toko(toko, True, 0, pesan[toko.slug],
                                     hook=lambda ev, s=toko.slug: self._hook(s, ev), stop=stop)
             except BaseException as e:  # satu toko gagal tidak menghentikan toko lain
-                print(f"[ERROR] {toko.nama}:\n{traceback.format_exc()}")
+                logs.galat(f"toko {toko.nama} berhenti", e)
                 self._ubah(toko.slug, status="berhenti", msg=pesan_galat(e))
                 self._beri_tahu(f"Proses terhenti: {toko.nama}", pesan_galat(e))
             with self._lock:
@@ -120,5 +119,6 @@ class RunManager:
                 p["msg"] = "Captcha terdeteksi: selesaikan di jendela Chrome" if ev["ada"] else ""
             elif t == "selesai" and ev.get("berhenti"):
                 p["status"], p["msg"] = "berhenti", ev["berhenti"]
+                logs.log.warning("toko %s berhenti: %s", slug, ev["berhenti"])
                 if ev["berhenti"] != "Dihentikan pengguna":
                     self._beri_tahu(f"Proses terhenti: {slug}", ev["berhenti"])

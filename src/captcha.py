@@ -13,7 +13,7 @@ from __future__ import annotations
 import threading
 from typing import Callable
 
-from . import notif
+from . import logs, notif
 
 CAPTCHA_SELECTOR = (
     'xpath://div[@id="captcha_container" '
@@ -86,5 +86,5 @@ class Pemantau:
                 elif tampil and not sekarang and self._hook:
                     self._hook({"t": "captcha", "ada": False})
                 tampil = sekarang
-            except Exception:
-                pass  # pemantau tidak boleh mematikan run
+            except Exception as e:  # pemantau tidak boleh mematikan run
+                logs.galat("pemantau captcha", e)
