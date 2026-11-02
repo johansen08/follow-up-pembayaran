@@ -60,7 +60,7 @@ def data_log() -> list[dict]:
             if st:  # nama pembeli sengaja tidak dikirim ke UI
                 out.append({"toko": t.slug, "no": no, "status": st, "waktu": e.get("waktu", "")})
     out.sort(key=lambda x: x["waktu"], reverse=True)
-    return out[:1000]
+    return out
 
 
 class Galat(Exception):
